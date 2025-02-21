@@ -42,8 +42,6 @@ export default function ProductsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="phones">Phones</SelectItem>
-            <SelectItem value="laptops">Laptops</SelectItem>
             <SelectItem value="accessories">Accessories</SelectItem>
           </SelectContent>
         </Select>

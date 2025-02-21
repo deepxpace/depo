@@ -30,12 +30,6 @@ export default function Navbar() {
               <NavigationMenuTrigger>Categories</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <div className="w-[200px] p-2 space-y-2">
-                  <Link href="/products?category=phones" className="block p-2 hover:bg-accent rounded">
-                    Phones
-                  </Link>
-                  <Link href="/products?category=laptops" className="block p-2 hover:bg-accent rounded">
-                    Laptops
-                  </Link>
                   <Link href="/products?category=accessories" className="block p-2 hover:bg-accent rounded">
                     Accessories
                   </Link>
