@@ -10,43 +10,15 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
-import { CartItem } from "@shared/schema";
 
 export default function CartPage() {
-  const { items, removeFromCart, clearCart } = useCart();
+  const { items, removeFromCart } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
 
-  const checkoutMutation = useMutation({
-    mutationFn: async () => {
-      const total = items.reduce(
-        (sum: number, item) => sum + item.product.price * item.quantity,
-        0,
-      );
-
-      await apiRequest("POST", "/api/orders", {
-        items: items.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-        })),
-        total,
-      });
-    },
-    onSuccess: () => {
-      clearCart();
-      toast({
-        title: "Order placed successfully",
-        description: "Thank you for your purchase!",
-      });
-      setLocation("/");
-    },
-  });
-
-  const handleCheckout = () => {
+  const handleProceedToCheckout = () => {
     if (!user) {
       toast({
         title: "Please login first",
@@ -57,14 +29,14 @@ export default function CartPage() {
       return;
     }
 
-    checkoutMutation.mutate();
+    setLocation("/checkout");
   };
 
   if (items.length === 0) {
     return (
       <div className="text-center space-y-4">
         <h1 className="text-2xl font-semibold">Your cart is empty</h1>
-        <Button variant="outline">
+        <Button variant="outline" asChild>
           <Link href="/products">Continue Shopping</Link>
         </Button>
       </div>
@@ -72,7 +44,7 @@ export default function CartPage() {
   }
 
   const total = items.reduce(
-    (sum: number, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + item.product.price * item.quantity,
     0,
   );
 
@@ -119,8 +91,8 @@ export default function CartPage() {
         <div className="text-lg font-semibold">
           Total: NPR {(total / 100).toLocaleString()}
         </div>
-        <Button onClick={handleCheckout} disabled={checkoutMutation.isPending}>
-          Checkout
+        <Button onClick={handleProceedToCheckout}>
+          Proceed to Checkout
         </Button>
       </div>
     </div>

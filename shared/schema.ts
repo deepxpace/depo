@@ -24,6 +24,8 @@ export const orders = pgTable("orders", {
   items: jsonb("items").notNull(),
   total: integer("total").notNull(), // Total in cents
   status: text("status").notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  address: jsonb("address").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -33,12 +35,25 @@ export const insertUserSchema = createInsertSchema(users).pick({
 });
 
 export const insertProductSchema = createInsertSchema(products);
-export const insertOrderSchema = createInsertSchema(orders);
+
+export const addressSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  street: z.string().min(1, "Street address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  postalCode: z.string().min(1, "Postal code is required"),
+  phone: z.string().min(10, "Valid phone number is required"),
+});
+
+export const insertOrderSchema = createInsertSchema(orders).extend({
+  address: addressSchema,
+});
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type Order = typeof orders.$inferSelect;
+export type Address = z.infer<typeof addressSchema>;
 
 export type CartItem = {
   productId: number;

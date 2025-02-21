@@ -8,6 +8,7 @@ import HomePage from "@/pages/home-page";
 import ProductsPage from "@/pages/products-page";
 import ProductDetailPage from "@/pages/product-detail-page";
 import CartPage from "@/pages/cart-page";
+import CheckoutPage from "@/pages/checkout-page";
 import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "./lib/protected-route";
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/products/:id" component={ProductDetailPage} />
           <Route path="/cart" component={CartPage} />
           <Route path="/auth" component={AuthPage} />
+          <ProtectedRoute path="/checkout" component={CheckoutPage} />
           <ProtectedRoute path="/orders" component={CartPage} />
           <Route component={NotFound} />
         </Switch>
