@@ -31,12 +31,14 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react"; // Added missing import
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
+  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   const form = useForm({
     resolver: zodResolver(addressSchema),
@@ -79,8 +81,6 @@ export default function CheckoutPage() {
       setLocation("/");
     },
   });
-
-  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   if (!user) {
     setLocation("/auth");
