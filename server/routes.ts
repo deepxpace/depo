@@ -28,6 +28,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendStatus(200);
   });
 
+  app.post("/api/products", async (req, res) => {
+    const product = await storage.createProduct(req.body);
+    res.status(201).json(product);
+  });
+
   // Orders routes
   app.post("/api/orders", async (req, res) => {
     if (!req.user) {
