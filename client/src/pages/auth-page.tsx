@@ -59,7 +59,7 @@ export default function AuthPage() {
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
         <div className="hidden md:flex flex-col justify-center space-y-6">
-          <h1 className="text-4xl font-bold">Welcome to TechMart Nepal</h1>
+          <h1 className="text-4xl font-bold">Welcome to TruKart Nepal</h1>
           <p className="text-lg text-muted-foreground">
             Create an account to track your orders and get access to exclusive deals
             on the latest tech products.
