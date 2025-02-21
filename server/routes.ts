@@ -44,6 +44,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(order);
   });
 
+  app.post("/api/orders/:id/pay", async (req, res) => {
+    if (!req.user) {
+      return res.status(401).send("Must be logged in to make payment");
+    }
+    const { amount } = req.body;
+    const payment = await initiatePayment(amount, req.params.id);
+    res.json(payment);
+  });
+
+  app.post("/api/orders/:id/delivery", async (req, res) => {
+    if (!req.user) {
+      return res.status(401).send("Must be logged in to create delivery");
+    }
+    const delivery = await createDelivery(req.body);
+    res.json(delivery);
+  });
+
+  app.get("/api/orders/:id/track", async (req, res) => {
+    if (!req.user) {
+      return res.status(401).send("Must be logged in to track delivery");
+    }
+    const tracking = await trackDelivery(req.params.id);
+    res.json(tracking);
+  });
+
   app.get("/api/orders", async (req, res) => {
     if (!req.user) {
       return res.status(401).send("Must be logged in to view orders");
