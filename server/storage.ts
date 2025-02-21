@@ -59,6 +59,11 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
+  async deleteProduct(id: number): Promise<boolean> {
+    const result = await db.delete(products).where(eq(products.id, id));
+    return result.length > 0;
+  }
+
   async createOrder(userId: number, items: CartItem[], total: number): Promise<Order> {
     const [order] = await db
       .insert(orders)

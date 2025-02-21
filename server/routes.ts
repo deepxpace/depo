@@ -20,6 +20,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(product);
   });
 
+  app.delete("/api/products/:id", async (req, res) => {
+    const result = await storage.deleteProduct(parseInt(req.params.id));
+    if (!result) {
+      return res.status(404).send("Product not found");
+    }
+    res.sendStatus(200);
+  });
+
   // Orders routes
   app.post("/api/orders", async (req, res) => {
     if (!req.user) {
