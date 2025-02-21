@@ -18,7 +18,7 @@ export default function HomePage() {
           Your one-stop shop for the latest electronics. From smartphones to laptops,
           find the best tech at great prices.
         </p>
-        <Button asChild size="lg">
+        <Button variant="outline" asChild>
           <Link href="/products">Shop Now</Link>
         </Button>
       </section>

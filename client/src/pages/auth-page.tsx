@@ -22,16 +22,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect } from "react";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [_, setLocation] = useLocation();
 
-  // Redirect if already logged in
-  if (user) {
-    setLocation("/");
-    return null;
-  }
+  useEffect(() => {
+    // Redirect if already logged in
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
 
   const loginForm = useForm({
     resolver: zodResolver(insertUserSchema),
@@ -49,6 +51,10 @@ export default function AuthPage() {
     },
   });
 
+  if (user) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
@@ -59,7 +65,7 @@ export default function AuthPage() {
             on the latest tech products.
           </p>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Authentication</CardTitle>

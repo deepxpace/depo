@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
+import { CartItem } from "@shared/schema";
 
 export default function CartPage() {
   const { items, removeFromCart, clearCart } = useCart();
@@ -23,12 +24,12 @@ export default function CartPage() {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       const total = items.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
+        (sum: number, item) => sum + item.product.price * item.quantity,
         0,
       );
-      
+
       await apiRequest("POST", "/api/orders", {
-        items: items.map(item => ({
+        items: items.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
         })),
@@ -63,7 +64,7 @@ export default function CartPage() {
     return (
       <div className="text-center space-y-4">
         <h1 className="text-2xl font-semibold">Your cart is empty</h1>
-        <Button asChild>
+        <Button variant="outline">
           <Link href="/products">Continue Shopping</Link>
         </Button>
       </div>
@@ -71,7 +72,7 @@ export default function CartPage() {
   }
 
   const total = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum: number, item) => sum + item.product.price * item.quantity,
     0,
   );
 
