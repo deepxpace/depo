@@ -12,8 +12,8 @@ export default function HomePage() {
     queryKey: ["/api/products"],
   });
 
-  const oneplusProducts = products?.filter(p => p.name.toLowerCase().includes('oneplus')) || [];
-  const fireboltProducts = products?.filter(p => p.name.toLowerCase().includes('fire-boltt')) || [];
+  const oneplusProducts = products?.filter(p => p.name.toLowerCase().includes('oneplus') || p.name.toLowerCase().includes('one plus')) || [];
+  const fireboltProducts = products?.filter(p => p.name.toLowerCase().includes('fire-boltt') || p.name.toLowerCase().includes('fireboltt')) || [];
 
   return (
     <div className="space-y-12">
