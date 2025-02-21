@@ -13,7 +13,7 @@ export default function HomePage() {
   return (
     <div className="space-y-12">
       <section className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">Welcome to TechMart Nepal</h1>
+        <h1 className="text-4xl font-bold">Welcome to TruKart Nepal</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Your one-stop shop for the latest electronics. From smartphones to laptops,
           find the best tech at great prices.
