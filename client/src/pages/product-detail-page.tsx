@@ -3,12 +3,15 @@ import { useParams } from "wouter";
 import { Product } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart-provider";
+import { useWishlist } from "@/components/wishlist-provider";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Heart } from "lucide-react";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: [`/api/products/${id}`],
@@ -52,16 +55,36 @@ export default function ProductDetailPage() {
 
         <p className="text-muted-foreground">{product.description}</p>
 
-        <div className="space-y-2">
+        <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Stock: {product.stock} units
           </p>
-          <Button
-            onClick={() => addToCart(product)}
-            disabled={product.stock === 0}
-          >
-            Add to Cart
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => addToCart(product)}
+              disabled={product.stock === 0}
+              className="flex-1"
+            >
+              Add to Cart
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (isInWishlist(product.id)) {
+                  removeFromWishlist(product.id);
+                } else {
+                  addToWishlist(product.id);
+                }
+              }}
+              className="px-4"
+            >
+              <Heart
+                className={`h-4 w-4 ${
+                  isInWishlist(product.id) ? "fill-red-500 text-red-500" : ""
+                }`}
+              />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

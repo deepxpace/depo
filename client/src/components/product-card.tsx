@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useCart } from "./cart-provider";
+import { useWishlist } from "./wishlist-provider";
+import { Heart } from "lucide-react";
 
 type ProductCardProps = {
   product: Product;
@@ -16,16 +18,40 @@ type ProductCardProps = {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const inWishlist = isInWishlist(product.id);
+
+  const handleWishlistToggle = () => {
+    if (inWishlist) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product.id);
+    }
+  };
 
   return (
     <Card className="overflow-hidden">
-      <Link href={`/products/${product.id}`}>
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="h-48 w-full object-cover transition-transform hover:scale-105"
-        />
-      </Link>
+      <div className="relative">
+        <Link href={`/products/${product.id}`}>
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="h-48 w-full object-cover transition-transform hover:scale-105"
+          />
+        </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-2 right-2 h-8 w-8 p-0 bg-white/80 hover:bg-white"
+          onClick={handleWishlistToggle}
+        >
+          <Heart
+            className={`h-4 w-4 ${
+              inWishlist ? "fill-red-500 text-red-500" : "text-gray-600"
+            }`}
+          />
+        </Button>
+      </div>
       
       <CardHeader>
         <CardTitle className="line-clamp-1">{product.name}</CardTitle>
@@ -40,9 +66,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
       </CardContent>
       
-      <CardFooter>
+      <CardFooter className="flex gap-2">
         <Button 
-          className="w-full" 
+          className="flex-1" 
           onClick={() => addToCart(product)}
           disabled={product.stock === 0}
         >

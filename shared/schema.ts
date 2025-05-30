@@ -21,13 +21,20 @@ export const products = pgTable("products", {
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  items: jsonb("items").notNull(),
-  total: integer("total").notNull(), // Total in cents
-  status: text("status").notNull(),
-  paymentMethod: text("payment_method").notNull(),
-  address: jsonb("address").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  userId: integer("userId").references(() => users.id),
+  items: json("items").notNull(),
+  total: integer("total").notNull(),
+  status: text("status").notNull().default("pending"),
+  address: text("address").notNull(),
+  paymentMethod: text("paymentMethod").notNull(),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export const wishlist = pgTable("wishlist", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").references(() => users.id),
+  productId: integer("productId").references(() => products.id),
+  createdAt: timestamp("createdAt").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

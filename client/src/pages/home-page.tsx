@@ -1,21 +1,22 @@
-
-import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Product } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import HeroCarousel from "@/components/hero-carousel";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Heart } from "lucide-react";
+import { Link } from "wouter";
 import { useCart } from "@/components/cart-provider";
+import { useWishlist } from "@/components/wishlist-provider";
+import HeroCarousel from "@/components/hero-carousel";
 
 export default function HomePage() {
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
   const { addToCart } = useCart();
+  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
   // Sample featured products with sale data
   const featuredProducts = products?.slice(0, 4) || [];
@@ -66,14 +67,33 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              <Button 
-                onClick={() => addToCart(product)}
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
-                size="sm"
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => addToCart(product)}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  size="sm"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <Button
+                  onClick={() =>
+                    wishlist.find((item) => item.id === product.id)
+                      ? removeFromWishlist(product.id)
+                      : addToWishlist(product)
+                  }
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600"
+                  size="sm"
+                >
+                  <Heart
+                    className={`h-4 w-4 mr-2 ${
+                      wishlist.find((item) => item.id === product.id)
+                        ? "text-red-500"
+                        : ""
+                    }`}
+                  />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

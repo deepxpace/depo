@@ -65,6 +65,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(orders);
   });
 
+  // Wishlist routes
+  app.post("/api/wishlist", requireAuth, async (req, res) => {
+    try {
+      const { productId } = req.body;
+      const item = await storage.addToWishlist(req.user.id, productId);
+      res.status(201).json(item);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/wishlist/:productId", requireAuth, async (req, res) => {
+    const result = await storage.removeFromWishlist(req.user.id, parseInt(req.params.productId));
+    if (!result) {
+      return res.status(404).json({ message: "Item not found in wishlist" });
+    }
+    res.sendStatus(200);
+  });
+
+  app.get("/api/wishlist", requireAuth, async (req, res) => {
+    const wishlist = await storage.getWishlist(req.user.id);
+    res.json(wishlist);
+  });
+
+  app.get("/api/wishlist/check/:productId", requireAuth, async (req, res) => {
+    const isInWishlist = await storage.isInWishlist(req.user.id, parseInt(req.params.productId));
+    res.json({ isInWishlist });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

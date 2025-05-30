@@ -1,21 +1,22 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { useCart } from "./cart-provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, User, LogOut, Settings, Package } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ShoppingCart, User, LogOut, Heart, Package, Settings } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useCart } from "@/components/cart-provider";
+import { useWishlist } from "@/components/wishlist-provider";
 
 export default function Navbar() {
+  const [location] = useLocation();
   const { user, logout } = useAuth();
   const { items } = useCart();
-  const [location] = useLocation();
+  const { items: wishlistItems } = useWishlist();
 
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -46,6 +47,16 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
+             <Link href="/wishlist">
+              <Button variant="outline" size="sm" className="relative">
+                <Heart className="h-4 w-4" />
+                {wishlistItems.length > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {wishlistItems.length}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
             <Link href="/cart">
               <Button variant="outline" size="sm" className="relative">
                 <ShoppingCart className="h-4 w-4" />

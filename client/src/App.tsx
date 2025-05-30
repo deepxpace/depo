@@ -15,6 +15,8 @@ import OrdersPage from "@/pages/orders-page";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "./lib/protected-route";
 import Navbar from "@/components/navbar";
+import { WishlistProvider } from "@/components/wishlist-provider";
+import WishlistPage from "@/pages/wishlist-page";
 
 function Router() {
   return (
@@ -26,8 +28,9 @@ function Router() {
           <Route path="/products" component={ProductsPage} />
           <Route path="/products/:id" component={ProductDetailPage} />
           <Route path="/cart" component={CartPage} />
+          <Route path="/wishlist" component={WishlistPage} />
+          <Route path="/checkout" component={CheckoutPage} />
           <Route path="/auth" component={AuthPage} />
-          <ProtectedRoute path="/checkout" component={CheckoutPage} />
           <ProtectedRoute path="/admin" component={AdminPage} />
           <ProtectedRoute path="/orders" component={OrdersPage} />
           <Route component={NotFound} />
@@ -41,10 +44,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CartProvider>
-          <Router />
-          <Toaster />
-        </CartProvider>
+        <WishlistProvider>
+          <CartProvider>
+            <Router />
+            <Toaster />
+          </CartProvider>
+        </WishlistProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

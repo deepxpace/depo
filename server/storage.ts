@@ -1,10 +1,11 @@
 import { User, InsertUser, Product, Order, CartItem } from "@shared/schema";
 import { users, products, orders } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { Pool } from "pg";
+import { wishlist } from '@shared/schema';
 
 const PostgresSessionStore = connectPg(session);
 
@@ -34,6 +35,12 @@ export interface IStorage {
   // Order operations
   createOrder(userId: number, items: CartItem[], total: number, address?: any, paymentMethod?: string): Promise<Order>;
   getOrders(userId: number): Promise<Order[]>;
+
+  // Wishlist operations
+  addToWishlist(userId: number, productId: number): Promise<any>;
+  removeFromWishlist(userId: number, productId: number): Promise<boolean>;
+  getWishlist(userId: number): Promise<any[]>;
+  isInWishlist(userId: number, productId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -107,6 +114,43 @@ export class DatabaseStorage implements IStorage {
 
   async getAllOrders() {
     return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  // Wishlist methods
+  async addToWishlist(userId: number, productId: number): Promise<any> {
+    const existing = await db.select().from(wishlist)
+      .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)));
+
+    if (existing.length > 0) {
+      throw new Error("Product already in wishlist");
+    }
+
+    const [inserted] = await db.insert(wishlist).values({ userId, productId }).returning();
+    return inserted;
+  }
+
+  async removeFromWishlist(userId: number, productId: number): Promise<boolean> {
+    const result = await db.delete(wishlist)
+      .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)));
+    return result.rowCount! > 0;
+  }
+
+  async getWishlist(userId: number): Promise<any[]> {
+    return await db.select({
+      id: wishlist.id,
+      productId: wishlist.productId,
+      createdAt: wishlist.createdAt,
+      product: products
+    })
+    .from(wishlist)
+    .innerJoin(products, eq(wishlist.productId, products.id))
+    .where(eq(wishlist.userId, userId));
+  }
+
+  async isInWishlist(userId: number, productId: number): Promise<boolean> {
+    const result = await db.select().from(wishlist)
+      .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)));
+    return result.length > 0;
   }
 }
 
