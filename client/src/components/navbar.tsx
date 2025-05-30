@@ -1,154 +1,107 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "./cart-provider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ShoppingCart, User, LogOut, Settings, Package } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, User, Search, ChevronDown, Heart } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export default function Navbar() {
-  const { user, logoutMutation } = useAuth();
-  const { totalItems } = useCart();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { user, logout } = useAuth();
+  const { items } = useCart();
+  const [location] = useLocation();
 
-  const categories = [
-    "Mobile Phones",
-    "Laptops", 
-    "Accessories",
-    "Home Appliances",
-    "Electronics"
-  ];
+  const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <header className="border-b bg-white">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-6">
-        {/* Logo */}
-        <Link href="/" className="flex items-center flex-shrink-0">
-          <img 
-            src="/neptokart-logo.png" 
-            alt="NeptoKart" 
-            className="h-8 w-auto"
-          />
-        </Link>
-
-        {/* Search Bar */}
-        <div className="flex-1 max-w-xl">
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-4 pr-12 h-10 border-gray-300 rounded-lg focus:border-red-500 focus:ring-red-500"
-            />
-            <Button 
-              size="sm" 
-              className="absolute right-1 top-1 h-8 w-8 p-0 bg-red-600 hover:bg-red-700"
-            >
-              <Search className="h-4 w-4" />
-            </Button>
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
+          <div className="flex items-center space-x-8">
+            <Link href="/">
+              <img 
+                src="/neptokart-logo.png" 
+                alt="TruKart Nepal" 
+                className="h-8 w-auto"
+              />
+            </Link>
+            <div className="hidden md:flex space-x-6">
+              <Link href="/">
+                <Button variant="ghost" className={location === "/" ? "bg-accent" : ""}>
+                  Home
+                </Button>
+              </Link>
+              <Link href="/products">
+                <Button variant="ghost" className={location === "/products" ? "bg-accent" : ""}>
+                  Products
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Navigation Items */}
-        <div className="flex items-center gap-6">
-          {/* Categories Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium hover:text-red-600 transition-colors">
-              Categories
-              <ChevronDown className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {categories.map((category) => (
-                <DropdownMenuItem key={category} asChild>
-                  <Link href={`/products?category=${encodeURIComponent(category)}`} className="w-full">
-                    {category}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuItem asChild>
-                <Link href="/products" className="w-full font-semibold">
-                  All Products
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center space-x-4">
+            <Link href="/cart">
+              <Button variant="outline" size="sm" className="relative">
+                <ShoppingCart className="h-4 w-4" />
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {cartItemCount}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
 
-          {/* Account */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium hover:text-red-600 transition-colors">
-              <User className="h-4 w-4" />
-              Account
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {user ? (
-                <>
-                  <DropdownMenuItem className="font-medium">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-2" />
                     {user.username}
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {user.role}
+                    </Badge>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <User className="h-4 w-4 mr-2" />
+                    Profile ({user.role})
                   </DropdownMenuItem>
-                  {(user.role === "vendor" || user.role === "admin") && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="w-full">
-                        Admin Panel
-                      </Link>
+                  <Link href="/orders">
+                    <DropdownMenuItem>
+                      <Package className="h-4 w-4 mr-2" />
+                      Order History
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem asChild>
-                    <Link href="/orders" className="w-full">
-                      My Orders
+                  </Link>
+                  {user.role === "vendor" || user.role === "admin" ? (
+                    <Link href="/admin">
+                      <DropdownMenuItem>
+                        <Settings className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => logoutMutation.mutate()}
-                    className="text-red-600"
-                  >
+                  ) : null}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => logout.mutate()}>
+                    <LogOut className="h-4 w-4 mr-2" />
                     Logout
                   </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/auth" className="w-full">
-                      Login
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/auth" className="w-full">
-                      Register
-                    </Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Wishlist */}
-          <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-red-600">
-            <Heart className="h-4 w-4" />
-            <span className="text-sm font-medium">Wishlist</span>
-          </Button>
-
-          {/* Cart */}
-          <Link href="/cart">
-            <Button variant="ghost" size="sm" className="relative flex items-center gap-1 hover:text-red-600">
-              <ShoppingCart className="h-4 w-4" />
-              <span className="text-sm font-medium">Cart</span>
-              {totalItems > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-600 text-xs flex items-center justify-center text-white">
-                  {totalItems}
-                </Badge>
-              )}
-            </Button>
-          </Link>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/auth">
+                <Button size="sm">Login</Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
-    </header>
+    </nav>
   );
 }

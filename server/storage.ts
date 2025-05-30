@@ -1,7 +1,7 @@
 import { User, InsertUser, Product, Order, CartItem } from "@shared/schema";
 import { users, products, orders } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -86,6 +86,14 @@ export class DatabaseStorage implements IStorage {
 
   async getOrders(userId: number): Promise<Order[]> {
     return await db.select().from(orders).where(eq(orders.userId, userId));
+  }
+
+  async getUserOrders(userId: number) {
+    return await db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
+  }
+
+  async getAllOrders() {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
   }
 }
 

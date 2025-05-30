@@ -11,6 +11,7 @@ import CartPage from "@/pages/cart-page";
 import CheckoutPage from "@/pages/checkout-page";
 import AuthPage from "@/pages/auth-page";
 import AdminPage from "@/pages/admin-page";
+import OrdersPage from "@/pages/orders-page";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "./lib/protected-route";
 import Navbar from "@/components/navbar";
@@ -28,7 +29,7 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <ProtectedRoute path="/checkout" component={CheckoutPage} />
           <ProtectedRoute path="/admin" component={AdminPage} />
-          <ProtectedRoute path="/orders" component={CartPage} />
+          <ProtectedRoute path="/orders" component={OrdersPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
