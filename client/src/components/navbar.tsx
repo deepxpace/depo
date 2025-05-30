@@ -20,8 +20,12 @@ export default function Navbar() {
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold">
-          TruKart Nepal
+        <Link href="/" className="flex items-center">
+          <img 
+            src="/neptokart-logo.png" 
+            alt="NeptoKart" 
+            className="h-10 w-auto"
+          />
         </Link>
 
         <NavigationMenu>
