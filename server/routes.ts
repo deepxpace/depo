@@ -39,10 +39,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       isAuthenticated: req.isAuthenticated(),
       hasUser: !!req.user,
       sessionID: req.sessionID,
-      userId: req.user?.id
+      userId: req.user?.id,
+      session: req.session,
+      cookies: req.headers.cookie
     });
     
     if (!req.isAuthenticated() || !req.user) {
+      console.log('Authentication failed - redirecting to login');
       return res.status(401).json({ message: "Must be logged in" });
     }
     next();

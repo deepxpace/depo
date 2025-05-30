@@ -33,7 +33,7 @@ export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "trukart-nepal-secret-key-2024",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true to create sessions for anonymous users
     store: storage.sessionStore,
     cookie: {
       secure: false, // Set to false for development
@@ -41,7 +41,7 @@ export function setupAuth(app: Express) {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax'
     },
-    name: 'trukart.sid',
+    name: 'connect.sid', // Use standard session name
   };
 
   app.set("trust proxy", 1);
