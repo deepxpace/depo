@@ -10,4 +10,7 @@ const queryClient = postgres(connectionString, {
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
+// For session store
+export const pool = queryClient;
+
 export const db = drizzle(queryClient, { schema });
