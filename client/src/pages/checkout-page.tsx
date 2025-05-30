@@ -57,20 +57,47 @@ export default function CheckoutPage() {
       address: any;
       paymentMethod: string;
     }) => {
+      // Make sure we have items in the cart
+      if (!items || items.length === 0) {
+        throw new Error("Your cart is empty");
+      }
+
       const total = items.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
         0,
       );
 
-      const response = await apiRequest("POST", "/api/orders", {
-        items: items.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-        })),
+      // Format cart items for the API
+      const cartItems = items.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      }));
+
+      console.log("Submitting order:", {
+        items: cartItems,
         total,
         address: data.address,
         paymentMethod: data.paymentMethod,
       });
+
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: cartItems,
+          total,
+          address: data.address,
+          paymentMethod: data.paymentMethod,
+        }),
+        credentials: "include", // Include cookies for authentication
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to place order");
+      }
 
       return response.json();
     },

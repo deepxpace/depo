@@ -34,7 +34,7 @@ export default function Navbar() {
           <img 
             src="/neptokart-logo.png" 
             alt="NeptoKart" 
-            className="h-8 w-auto"
+            className="h-12 w-auto object-contain"
           />
         </Link>
 
@@ -130,10 +130,12 @@ export default function Navbar() {
           </DropdownMenu>
 
           {/* Wishlist */}
-          <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-red-600">
-            <Heart className="h-4 w-4" />
-            <span className="text-sm font-medium">Wishlist</span>
-          </Button>
+          <Link href="/wishlist">
+            <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-red-600">
+              <Heart className="h-4 w-4" />
+              <span className="text-sm font-medium">Wishlist</span>
+            </Button>
+          </Link>
 
           {/* Cart */}
           <Link href="/cart">

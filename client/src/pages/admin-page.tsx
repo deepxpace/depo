@@ -37,7 +37,7 @@ export default function AdminPage() {
     queryKey: ["/api/products"],
   });
 
-  const { data: orders } = useQuery<Order[]>({
+  const { data: orders, isLoading: ordersLoading, error: ordersError } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
     enabled: !!user && (user.role === "admin" || user.role === "vendor"),
   });
@@ -99,6 +99,19 @@ export default function AdminPage() {
           <Card>
             <CardHeader>
               <CardTitle>Customer Orders</CardTitle>
+              {ordersLoading && <p className="text-sm text-muted-foreground">Loading orders...</p>}
+              {ordersError && (
+                <p className="text-sm text-red-500">
+                  Error loading orders: {(ordersError as Error).message}
+                </p>
+              )}
+              {!ordersLoading && !ordersError && orders && (
+                <p className="text-sm text-muted-foreground">
+                  {orders.length > 0 
+                    ? `Showing ${orders.length} order(s)` 
+                    : "No orders found. When customers place orders, they will appear here."}
+                </p>
+              )}
             </CardHeader>
             <CardContent>
               <Table>
@@ -127,6 +140,13 @@ export default function AdminPage() {
                       <TableCell>{order.paymentMethod}</TableCell>
                     </TableRow>
                   ))}
+                  {!ordersLoading && orders?.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        No orders found
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

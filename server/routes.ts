@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupJWTAuth, authenticateToken } from "./jwt-auth";
+import { setupAuth } from "./auth";
 import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -35,17 +35,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware
   function requireAuth(req: any, res: any, next: any) {
-    console.log('Auth check:', {
-      isAuthenticated: req.isAuthenticated(),
-      hasUser: !!req.user,
-      sessionID: req.sessionID,
-      userId: req.user?.id,
-      session: req.session,
-      cookies: req.headers.cookie
-    });
-    
     if (!req.isAuthenticated() || !req.user) {
-      console.log('Authentication failed - redirecting to login');
+      console.log('Authentication failed - user not logged in');
       return res.status(401).json({ message: "Must be logged in" });
     }
     next();
@@ -53,9 +44,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Orders routes
   app.post("/api/orders", requireAuth, async (req, res) => {
-    const { items, total, address, paymentMethod } = req.body;
-    const order = await storage.createOrder(req.user.id, items, total, address, paymentMethod);
-    res.status(201).json(order);
+    try {
+      console.log("Order request payload:", req.body);
+      const { items, total, address, paymentMethod } = req.body;
+      
+      // Validate required fields
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        console.error("Invalid items in order:", items);
+        return res.status(400).json({ message: "Order must contain valid items" });
+      }
+      
+      if (!total) {
+        return res.status(400).json({ message: "Order total is required" });
+      }
+      
+      if (!address) {
+        return res.status(400).json({ message: "Shipping address is required" });
+      }
+      
+      const order = await storage.createOrder(
+        req.user.id, 
+        items, 
+        total, 
+        JSON.stringify(address), // Ensure address is stringified 
+        paymentMethod
+      );
+      
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Order creation error:", error);
+      res.status(500).json({ message: "Failed to create order", error: String(error) });
+    }
   });
 
   app.post("/api/orders/:id/pay", requireAuth, async (req, res) => {
@@ -64,15 +83,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/orders", requireAuth, async (req, res) => {
-    const orders = await storage.getOrders(req.user.id);
-    res.json(orders);
+    try {
+      // If user is admin or vendor, return all orders
+      if (req.user.role === "admin" || req.user.role === "vendor") {
+        console.log(`Admin/vendor ${req.user.username} (ID: ${req.user.id}) requesting all orders`);
+        const orders = await storage.getAllOrders();
+        console.log(`Retrieved ${orders.length} orders for admin/vendor`);
+        return res.json(orders);
+      } else {
+        // For regular customers, return only their orders
+        console.log(`Customer ${req.user.username} (ID: ${req.user.id}) requesting their orders`);
+        const orders = await storage.getOrders(req.user.id);
+        console.log(`Retrieved ${orders.length} orders for customer`);
+        return res.json(orders);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      return res.status(500).json({ message: "Failed to fetch orders" });
+    }
   });
 
   // Wishlist routes
   app.post("/api/wishlist", requireAuth, async (req, res) => {
     try {
       const { productId } = req.body;
-      const item = await storage.addToWishlist(req.user.id, productId);
+      // Ensure productId is converted to an integer
+      if (!productId) {
+        return res.status(400).json({ message: "Product ID is required" });
+      }
+      const productIdInt = parseInt(productId, 10);
+      if (isNaN(productIdInt)) {
+        return res.status(400).json({ message: "Invalid product ID format" });
+      }
+      const item = await storage.addToWishlist(req.user.id, productIdInt);
       res.status(201).json(item);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

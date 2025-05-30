@@ -157,9 +157,10 @@ export default function AuthPage() {
               <TabsContent value="register">
                 <Form {...registerForm}>
                   <form
-                    onSubmit={registerForm.handleSubmit((data) =>
-                      registerMutation.mutate(data)
-                    )}
+                    onSubmit={registerForm.handleSubmit((data) => {
+                      console.log("Register form data:", data);
+                      registerMutation.mutate(data);
+                    })}
                     className="space-y-4"
                   >
                     <FormField
@@ -169,7 +170,11 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input 
+                              {...field} 
+                              placeholder="Enter a username"
+                              required
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -182,18 +187,28 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input 
+                              type="password" 
+                              {...field} 
+                              placeholder="Enter a password"
+                              required
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                    {registerMutation.isError && (
+                      <div className="text-red-500 text-sm">
+                        {registerMutation.error?.message || "Registration failed. Please try again."}
+                      </div>
+                    )}
                     <Button
                       type="submit"
                       className="w-full"
                       disabled={registerMutation.isPending}
                     >
-                      Register
+                      {registerMutation.isPending ? "Registering..." : "Register"}
                     </Button>
                   </form>
                 </Form>

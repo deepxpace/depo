@@ -16,7 +16,7 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string) {
+export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
@@ -36,8 +36,8 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: false,
-      httpOnly: false, // Allow client-side access for debugging
+      secure: false, // Set to true in production with HTTPS
+      httpOnly: true, // Prevent XSS attacks
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax'
     },
@@ -48,19 +48,6 @@ export function setupAuth(app: Express) {
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
-
-  // Add session debugging middleware
-  app.use((req, res, next) => {
-    console.log("Auth check:", {
-      isAuthenticated: req.isAuthenticated(),
-      hasUser: !!req.user,
-      sessionID: req.sessionID,
-      userId: req.user?.id,
-      session: req.session,
-      cookies: req.headers.cookie
-    });
-    next();
-  });
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
@@ -132,20 +119,38 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
-    const existingUser = await storage.getUserByUsername(req.body.username);
-    if (existingUser) {
-      return res.status(400).send("Username already exists");
+    try {
+      console.log("Registration request body:", req.body);
+      const { username, password, role = "customer" } = req.body;
+      
+      // Validate required fields
+      if (!username || !password) {
+        console.log("Missing required fields:", { username: !!username, password: !!password });
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      const user = await storage.createUser({
+        username,
+        password: await hashPassword(password),
+        role,
+      });
+
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Login after registration error:", err);
+          return next(err);
+        }
+        res.status(201).json(user);
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Registration failed" });
     }
-
-    const user = await storage.createUser({
-      ...req.body,
-      password: await hashPassword(req.body.password),
-    });
-
-    req.login(user, (err) => {
-      if (err) return next(err);
-      res.status(201).json(user);
-    });
   });
 
   app.post("/api/login", (req, res, next) => {
@@ -172,10 +177,19 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
-    });
+    // Handle session-based logout
+    if (req.logout) {
+      req.logout((err) => {
+        if (err) {
+          console.error("Logout error:", err);
+          return res.status(500).json({ error: "Logout failed" });
+        }
+        return res.status(200).json({ message: "Logged out successfully" });
+      });
+    } else {
+      // For JWT-based auth, just return success (client will clear token)
+      return res.status(200).json({ message: "Logged out successfully" });
+    }
   });
 
   app.get("/api/user", (req, res) => {

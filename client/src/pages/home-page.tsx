@@ -16,7 +16,7 @@ export default function HomePage() {
     queryKey: ["/api/products"],
   });
   const { addToCart } = useCart();
-  const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { items, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   // Sample featured products with sale data
   const featuredProducts = products?.slice(0, 4) || [];
@@ -78,17 +78,17 @@ export default function HomePage() {
                 </Button>
                 <Button
                   onClick={() => {
-                    const isInWishlist = wishlist?.find((item) => item.id === product.id);
+                    const isInWishlist = items?.some((item) => item.productId === product.id);
                     isInWishlist
                       ? removeFromWishlist(product.id)
-                      : addToWishlist(product);
+                      : addToWishlist(product.id);
                   }}
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600"
                   size="sm"
                 >
                   <Heart
                     className={`h-4 w-4 mr-2 ${
-                      wishlist?.find((item) => item.id === product.id)
+                      items?.some((item) => item.productId === product.id)
                         ? "text-red-500"
                         : ""
                     }`}

@@ -64,11 +64,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
-      const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+        credentials: "include", // Include cookies for session
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Registration failed");
+      }
+      
+      return await response.json();
     },
     onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/user"], user);
+      queryClient.setQueryData(["/api/user"], user);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      window.location.href = "/"; // Redirect to home page after successful registration
     },
     onError: (error: Error) => {
       toast({
@@ -81,10 +96,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include", // Include cookies for session authentication
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Logout failed");
+      }
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/user"], null);
+      queryClient.setQueryData(["/api/user"], null);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      window.location.href = "/"; // Redirect to home page after logout
     },
     onError: (error: Error) => {
       toast({
