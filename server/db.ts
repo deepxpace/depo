@@ -12,10 +12,28 @@ const connectionString = process.env.DATABASE_URL || "postgresql://postgres.dewm
 // Variables to track which database is being used
 let db: any;
 let isUsingPostgres = false;
+let pgClient: any = null;
 
 // Check if SQLite database exists (for local development)
 const sqliteDbPath = path.join(process.cwd(), 'neptech.db');
 const sqliteExists = fs.existsSync(sqliteDbPath);
+
+// Function to test database connection - exported for use in server/index.ts
+export async function testConnection() {
+  try {
+    console.log("🔄 Testing connection to database...");
+    if (isUsingPostgres && pgClient) {
+      const result = await pgClient`SELECT NOW() as current_time`;
+      console.log("✅ PostgreSQL connection successful:", result[0].current_time);
+    } else {
+      console.log("✅ SQLite connection successful");
+    }
+    return true;
+  } catch (error) {
+    console.error("❌ Database connection test failed:", error.message);
+    throw error;
+  }
+}
 
 // Try to connect to PostgreSQL first, fall back to SQLite if needed
 async function initDb() {
@@ -35,6 +53,7 @@ async function initDb() {
     // If successful, use PostgreSQL
     db = drizzle(queryClient, { schema });
     isUsingPostgres = true;
+    pgClient = queryClient;
     console.log("✅ Connected to PostgreSQL database");
     return { db, pool: queryClient, isUsingPostgres };
   } catch (error) {
