@@ -31,7 +31,7 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "trukart-nepal-secret-key-2024",
+    secret: process.env.SESSION_SECRET || "neptokart-nepal-secret-key-2024",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,

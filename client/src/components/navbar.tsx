@@ -30,11 +30,11 @@ export default function Navbar() {
     <header className="border-b bg-white">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center flex-shrink-0">
+        <Link href="/" className="flex items-center flex-shrink-0 mr-4">
           <img 
             src="/neptokart-logo.png" 
             alt="NeptoKart" 
-            className="h-12 w-auto object-contain"
+            className="h-16 w-auto object-contain max-w-[180px]"
           />
         </Link>
 

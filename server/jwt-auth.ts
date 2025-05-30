@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
-const JWT_SECRET = process.env.JWT_SECRET || "trukart-nepal-jwt-secret-2024";
+const JWT_SECRET = process.env.JWT_SECRET || "neptokart-nepal-jwt-secret-2024";
 
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
