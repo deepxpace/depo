@@ -12,23 +12,23 @@ async function throwIfResNotOk(res: Response) {
 export async function apiRequest(
   method: string,
   path: string,
-  body?: any,
+  config: RequestInit = {}
 ): Promise<Response> {
-  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  // Remove leading /api from path if it exists to avoid double prefix
+  const cleanPath = path.startsWith('/api') ? path.substring(4) : path;
+  const url = `${API_BASE_URL}${cleanPath}`;
 
-  const config: RequestInit = {
-    method: method.toUpperCase(),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include", // Include cookies in requests
-  };
-
-  if (body) {
-    config.body = JSON.stringify(body);
+  if (method === "POST" || method === "PUT") {
+    config = {
+      ...config,
+      headers: {
+        "Content-Type": "application/json",
+        ...config.headers,
+      },
+    };
   }
 
-  const response = await fetch(url, config);
+  const response = await fetch(url, { method, ...config });
   await throwIfResNotOk(response);
   return response;
 }
