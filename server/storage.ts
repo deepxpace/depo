@@ -21,7 +21,7 @@ export interface IStorage {
   getProduct(id: number): Promise<Product | undefined>;
 
   // Order operations
-  createOrder(userId: number, items: CartItem[], total: number): Promise<Order>;
+  createOrder(userId: number, items: CartItem[], total: number, address?: any, paymentMethod?: string): Promise<Order>;
   getOrders(userId: number): Promise<Order[]>;
 }
 
@@ -69,7 +69,7 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
-  async createOrder(userId: number, items: CartItem[], total: number): Promise<Order> {
+  async createOrder(userId: number, items: CartItem[], total: number, address?: any, paymentMethod?: string): Promise<Order> {
     const [order] = await db
       .insert(orders)
       .values({
@@ -77,6 +77,8 @@ export class DatabaseStorage implements IStorage {
         items,
         total,
         status: "pending",
+        paymentMethod: paymentMethod || "cod",
+        address: address || {},
       })
       .returning();
     return order;

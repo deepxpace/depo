@@ -39,8 +39,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).send("Must be logged in to create orders");
     }
 
-    const { items, total } = req.body;
-    const order = await storage.createOrder(req.user.id, items, total);
+    const { items, total, address, paymentMethod } = req.body;
+    const order = await storage.createOrder(req.user.id, items, total, address, paymentMethod);
     res.status(201).json(order);
   });
 
