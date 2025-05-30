@@ -33,30 +33,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(product);
   });
 
-  // Orders routes
-  app.post("/api/orders", async (req, res) => {
-    if (!req.user) {
-      return res.status(401).send("Must be logged in to create orders");
+  // Authentication middleware
+  function requireAuth(req: any, res: any, next: any) {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: "Must be logged in" });
     }
+    next();
+  }
 
+  // Orders routes
+  app.post("/api/orders", requireAuth, async (req, res) => {
     const { items, total, address, paymentMethod } = req.body;
     const order = await storage.createOrder(req.user.id, items, total, address, paymentMethod);
     res.status(201).json(order);
   });
 
-  app.post("/api/orders/:id/pay", async (req, res) => {
-    if (!req.user) {
-      return res.status(401).send("Must be logged in to make payment");
-    }
+  app.post("/api/orders/:id/pay", requireAuth, async (req, res) => {
     // Payment processing will be implemented with actual payment gateway
     res.json({ status: "payment_initiated", orderId: req.params.id });
   });
 
-  app.get("/api/orders", async (req, res) => {
-    if (!req.user) {
-      return res.status(401).send("Must be logged in to view orders");
-    }
-
+  app.get("/api/orders", requireAuth, async (req, res) => {
     const orders = await storage.getOrders(req.user.id);
     res.json(orders);
   });

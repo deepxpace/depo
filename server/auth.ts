@@ -53,7 +53,7 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  // Google OAuth Strategy
+  // Google OAuth Strategy - only register if environment variables exist
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     passport.use(
       new GoogleStrategy(
@@ -85,10 +85,20 @@ export function setupAuth(app: Express) {
     );
   }
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: number, done) => {
-    const user = await storage.getUser(id);
-    done(null, user);
+    try {
+      const user = await storage.getUser(id);
+      if (!user) {
+        return done(null, false);
+      }
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
   });
 
   app.post("/api/register", async (req, res, next) => {
@@ -124,16 +134,18 @@ export function setupAuth(app: Express) {
     res.json(req.user);
   });
 
-  // Google OAuth routes
-  app.get("/api/auth/google", 
-    passport.authenticate("google", { scope: ["profile", "email"] })
-  );
+  // Google OAuth routes - only if Google strategy is configured
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    app.get("/api/auth/google", 
+      passport.authenticate("google", { scope: ["profile", "email"] })
+    );
 
-  app.get("/api/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/auth" }),
-    (req, res) => {
-      // Successful authentication, redirect to home
-      res.redirect("/");
-    }
-  );
+    app.get("/api/auth/google/callback",
+      passport.authenticate("google", { failureRedirect: "/auth" }),
+      (req, res) => {
+        // Successful authentication, redirect to home
+        res.redirect("/");
+      }
+    );
+  }
 }
