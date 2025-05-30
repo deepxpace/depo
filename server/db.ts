@@ -7,7 +7,9 @@ const connectionString = process.env.DATABASE_URL || "postgresql://postgres:Kydn
 
 // For query purposes
 const queryClient = postgres(connectionString, {
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  ssl: connectionString.includes('supabase.co') || connectionString.includes('neon.tech') || process.env.NODE_ENV === "production" 
+    ? { rejectUnauthorized: false } 
+    : false,
 });
 
 // For session store
