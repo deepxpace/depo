@@ -44,12 +44,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WishlistProvider>
-          <CartProvider>
+        <CartProvider>
+          <WishlistProvider>
             <Router />
             <Toaster />
-          </CartProvider>
-        </WishlistProvider>
+          </WishlistProvider>
+        </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

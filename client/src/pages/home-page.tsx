@@ -77,17 +77,18 @@ export default function HomePage() {
                   Add to Cart
                 </Button>
                 <Button
-                  onClick={() =>
-                    wishlist.find((item) => item.id === product.id)
+                  onClick={() => {
+                    const isInWishlist = wishlist?.find((item) => item.id === product.id);
+                    isInWishlist
                       ? removeFromWishlist(product.id)
-                      : addToWishlist(product)
-                  }
+                      : addToWishlist(product);
+                  }}
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600"
                   size="sm"
                 >
                   <Heart
                     className={`h-4 w-4 mr-2 ${
-                      wishlist.find((item) => item.id === product.id)
+                      wishlist?.find((item) => item.id === product.id)
                         ? "text-red-500"
                         : ""
                     }`}

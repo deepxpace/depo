@@ -16,7 +16,7 @@ export default function Navbar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { items } = useCart();
-  const { items: wishlistItems } = useWishlist();
+  const { items: wishlistItems = [] } = useWishlist();
 
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
