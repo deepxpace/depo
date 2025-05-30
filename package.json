@@ -5,7 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsx server/index.ts",
-    "build": "vite build && tsc --project tsconfig.server.json",
+    "build:client": "vite build",
+    "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --outdir=dist/server --format=esm",
+    "build": "npm run build:client && npm run build:server",
     "start": "node dist/server/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push"
