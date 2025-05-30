@@ -31,7 +31,7 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: "your-secret-key",
+    secret: process.env.SESSION_SECRET || "trukart-nepal-secret-key-2024",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
@@ -41,6 +41,7 @@ export function setupAuth(app: Express) {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax'
     },
+    name: 'trukart.sid',
   };
 
   app.set("trust proxy", 1);

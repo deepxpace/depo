@@ -35,6 +35,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware
   function requireAuth(req: any, res: any, next: any) {
+    console.log('Auth check:', {
+      isAuthenticated: req.isAuthenticated(),
+      hasUser: !!req.user,
+      sessionID: req.sessionID,
+      userId: req.user?.id
+    });
+    
     if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ message: "Must be logged in" });
     }

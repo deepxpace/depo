@@ -14,6 +14,9 @@ const sessionPool = new Pool({
   ssl: process.env.DATABASE_URL?.includes('supabase.co') || process.env.DATABASE_URL?.includes('neon.tech') || process.env.NODE_ENV === "production" 
     ? { rejectUnauthorized: false } 
     : false,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 export interface IStorage {
@@ -40,6 +43,8 @@ export class DatabaseStorage implements IStorage {
     this.sessionStore = new PostgresSessionStore({
       pool: sessionPool,
       createTableIfMissing: true,
+      tableName: 'session',
+      schemaName: 'public',
     });
   }
 
