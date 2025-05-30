@@ -11,29 +11,13 @@ const connectionString = process.env.DATABASE_URL || "postgresql://postgres.dewm
 
 // Variables to track which database is being used
 let db: any;
+let pool: any;
 let isUsingPostgres = false;
 let pgClient: any = null;
 
 // Check if SQLite database exists (for local development)
 const sqliteDbPath = path.join(process.cwd(), 'neptech.db');
 const sqliteExists = fs.existsSync(sqliteDbPath);
-
-// Function to test database connection - exported for use in server/index.ts
-export async function testConnection() {
-  try {
-    console.log("🔄 Testing connection to database...");
-    if (isUsingPostgres && pgClient) {
-      const result = await pgClient`SELECT NOW() as current_time`;
-      console.log("✅ PostgreSQL connection successful:", result[0].current_time);
-    } else {
-      console.log("✅ SQLite connection successful");
-    }
-    return true;
-  } catch (error) {
-    console.error("❌ Database connection test failed:", error.message);
-    throw error;
-  }
-}
 
 // Try to connect to PostgreSQL first, fall back to SQLite if needed
 async function initDb() {
@@ -54,8 +38,9 @@ async function initDb() {
     db = drizzle(queryClient, { schema });
     isUsingPostgres = true;
     pgClient = queryClient;
+    pool = queryClient;
     console.log("✅ Connected to PostgreSQL database");
-    return { db, pool: queryClient, isUsingPostgres };
+    return true;
   } catch (error) {
     console.error("❌ PostgreSQL connection failed:", error.message);
     console.log("🔄 Falling back to SQLite database");
@@ -64,14 +49,39 @@ async function initDb() {
     const sqlite = new Database(sqliteDbPath);
     db = drizzleSqlite(sqlite, { schema });
     isUsingPostgres = false;
+    pool = sqlite;
     console.log("✅ Connected to SQLite database");
-    return { db, pool: sqlite, isUsingPostgres };
+    return true;
   }
 }
 
-// Initialize database connection
-const dbInstance = await initDb();
-db = dbInstance.db;
-export const pool = dbInstance.pool;
-export const isPostgres = dbInstance.isUsingPostgres;
-export { db };
+// Function to test database connection
+export async function testConnection() {
+  // Initialize the database if it hasn't been initialized yet
+  if (!db) {
+    await initDb();
+  }
+  
+  try {
+    console.log("🔄 Testing connection to database...");
+    if (isUsingPostgres && pgClient) {
+      const result = await pgClient`SELECT NOW() as current_time`;
+      console.log("✅ PostgreSQL connection successful:", result[0].current_time);
+    } else {
+      console.log("✅ SQLite connection successful");
+    }
+    return true;
+  } catch (error) {
+    console.error("❌ Database connection test failed:", error.message);
+    throw error;
+  }
+}
+
+// Initialize database on module import, but don't use top-level await
+initDb().catch(error => {
+  console.error("Failed to initialize database:", error);
+  process.exit(1);
+});
+
+// Export database and related utilities
+export { db, pool, isUsingPostgres as isPostgres };
