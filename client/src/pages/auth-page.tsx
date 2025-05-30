@@ -37,7 +37,6 @@ export default function AuthPage() {
   }, [user, setLocation]);
 
   const loginForm = useForm({
-    resolver: zodResolver(insertUserSchema),
     defaultValues: {
       username: "",
       password: "",
