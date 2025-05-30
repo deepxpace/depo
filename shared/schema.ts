@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  role: text("role").notNull().default("customer"), // customer, vendor, admin
 });
 
 export const products = pgTable("products", {
@@ -32,6 +33,9 @@ export const orders = pgTable("orders", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  role: true,
+}).extend({
+  role: z.enum(["customer", "vendor", "admin"]).default("customer"),
 });
 
 export const insertProductSchema = createInsertSchema(products);

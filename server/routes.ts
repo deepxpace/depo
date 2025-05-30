@@ -48,25 +48,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.user) {
       return res.status(401).send("Must be logged in to make payment");
     }
-    const { amount } = req.body;
-    const payment = await initiatePayment(amount, req.params.id);
-    res.json(payment);
-  });
-
-  app.post("/api/orders/:id/delivery", async (req, res) => {
-    if (!req.user) {
-      return res.status(401).send("Must be logged in to create delivery");
-    }
-    const delivery = await createDelivery(req.body);
-    res.json(delivery);
-  });
-
-  app.get("/api/orders/:id/track", async (req, res) => {
-    if (!req.user) {
-      return res.status(401).send("Must be logged in to track delivery");
-    }
-    const tracking = await trackDelivery(req.params.id);
-    res.json(tracking);
+    // Payment processing will be implemented with actual payment gateway
+    res.json({ status: "payment_initiated", orderId: req.params.id });
   });
 
   app.get("/api/orders", async (req, res) => {
