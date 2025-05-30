@@ -33,21 +33,34 @@ export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "trukart-nepal-secret-key-2024",
     resave: false,
-    saveUninitialized: true, // Changed to true to create sessions for anonymous users
+    saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: false, // Set to false for development
-      httpOnly: true,
+      secure: false,
+      httpOnly: false, // Allow client-side access for debugging
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax'
     },
-    name: 'connect.sid', // Use standard session name
+    name: 'connect.sid',
   };
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Add session debugging middleware
+  app.use((req, res, next) => {
+    console.log("Auth check:", {
+      isAuthenticated: req.isAuthenticated(),
+      hasUser: !!req.user,
+      sessionID: req.sessionID,
+      userId: req.user?.id,
+      session: req.session,
+      cookies: req.headers.cookie
+    });
+    next();
+  });
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {

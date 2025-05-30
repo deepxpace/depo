@@ -1,0 +1,135 @@
+
+> rest-express@1.0.0 dev
+4:42:45 PM [express] serving on port 5000
+4:42:48 PM [express] GET /api/user 401 in 3ms
+4:42:50 PM [express] GET /api/user 401 in 1ms
+4:42:52 PM [express] GET /api/products 304 in 2527ms :: [{"id":1,"name":"Fire-Boltt Phoenix Smart Wa…
+4:44:44 PM [express] POST /api/login 200 in 3107ms :: {"id":3,"username":"user","password":"d5fdbfab…
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  sessionID: '9tVCuqqQTpVM79YSTjXbKKRKE9HUnhXq',
+  userId: undefined,
+  session: Session {
+    cookie: {
+      path: '/',
+      _expires: 2025-05-31T16:44:44.633Z,
+      originalMaxAge: 86400000,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax'
+    }
+  },
+  cookies: undefined
+}
+Authentication failed - redirecting to login
+4:44:44 PM [express] GET /api/wishlist 401 in 4ms :: {"message":"Must be logged in"}
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  sessionID: 'hW9cYztB_QLPFwwto_yTD-BZFpJ_S5Rw',
+  userId: undefined,
+  session: Session {
+    cookie: {
+      path: '/',
+      _expires: 2025-05-31T16:45:10.929Z,
+      originalMaxAge: 86400000,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax'
+    }
+  },
+  cookies: undefined
+}
+Authentication failed - redirecting to login
+4:45:10 PM [express] POST /api/orders 401 in 2ms :: {"message":"Must be logged in"}
+4:46:19 PM [vite] hmr update /src/hooks/use-auth.tsx, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa
+4:46:22 PM [vite] hmr invalidate /src/hooks/use-auth.tsx Could not Fast Refresh ("AuthContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+4:46:22 PM [vite] hmr update /src/App.tsx?v=7kqD5ZFWJWthYEopnaSaa, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa, /src/components/wishlist-provider.tsx, /src/lib/protected-route.tsx, /src/components/navbar.tsx, /src/pages/orders-page.tsx, /src/pages/cart-page.tsx, /src/pages/checkout-page.tsx, /src/pages/admin-page.tsx, /src/pages/auth-page.tsx
+4:46:23 PM [vite] hmr invalidate /src/components/wishlist-provider.tsx Could not Fast Refresh ("useWishlist" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+4:46:23 PM [vite] hmr update /src/App.tsx?v=7kqD5ZFWJWthYEopnaSaa, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa, /src/pages/home-page.tsx, /src/pages/product-detail-page.tsx, /src/pages/wishlist-page.tsx, /src/components/product-card.tsx
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  sessionID: 'EBsl48UW1GDvdmEAUc8zVMeyyCy95S89',
+  userId: undefined,
+  session: Session {
+    cookie: {
+      path: '/',
+      _expires: 2025-05-31T16:46:23.587Z,
+      originalMaxAge: 86400000,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax'
+    }
+  },
+  cookies: undefined
+}
+Authentication failed - redirecting to login
+4:46:23 PM [express] GET /api/wishlist 401 in 1ms :: {"message":"Must be logged in"}
+4:46:26 PM [vite] hmr update /src/hooks/use-auth.tsx, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa, /src/App.tsx?v=7kqD5ZFWJWthYEopnaSaa, /src/pages/checkout-page.tsx
+4:46:28 PM [vite] hmr invalidate /src/hooks/use-auth.tsx Could not Fast Refresh ("AuthContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+4:46:28 PM [vite] hmr update /src/App.tsx?v=7kqD5ZFWJWthYEopnaSaa, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa, /src/components/wishlist-provider.tsx, /src/lib/protected-route.tsx, /src/components/navbar.tsx, /src/pages/orders-page.tsx, /src/pages/cart-page.tsx, /src/pages/checkout-page.tsx, /src/pages/admin-page.tsx, /src/pages/auth-page.tsx
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  sessionID: 'sBhF9ovKRkCmbApJMqVLlVL5SC47J6XH',
+  userId: undefined,
+  session: Session {
+    cookie: {
+      path: '/',
+      _expires: 2025-05-31T16:46:28.135Z,
+      originalMaxAge: 86400000,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax'
+    }
+  },
+  cookies: undefined
+}
+Authentication failed - redirecting to login
+4:46:28 PM [express] GET /api/wishlist 401 in 2ms :: {"message":"Must be logged in"}
+4:46:36 PM [vite] hmr update /src/hooks/use-auth.tsx, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa
+4:46:37 PM [vite] hmr invalidate /src/hooks/use-auth.tsx Could not Fast Refresh ("AuthContext" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+4:46:37 PM [vite] hmr update /src/App.tsx?v=7kqD5ZFWJWthYEopnaSaa, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa, /src/components/wishlist-provider.tsx, /src/lib/protected-route.tsx, /src/components/navbar.tsx, /src/pages/orders-page.tsx, /src/pages/cart-page.tsx, /src/pages/checkout-page.tsx, /src/pages/admin-page.tsx, /src/pages/auth-page.tsx
+4:46:38 PM [vite] hmr invalidate /src/components/wishlist-provider.tsx Could not Fast Refresh ("useWishlist" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+4:46:38 PM [vite] hmr update /src/App.tsx?v=7kqD5ZFWJWthYEopnaSaa, /src/index.css?v=7kqD5ZFWJWthYEopnaSaa, /src/pages/home-page.tsx, /src/pages/product-detail-page.tsx, /src/pages/wishlist-page.tsx, /src/components/product-card.tsx
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  sessionID: 't49cPLiOJA1AWqKcQAgEd6jkn5msp1MD',
+  userId: undefined,
+  session: Session {
+    cookie: {
+      path: '/',
+      _expires: 2025-05-31T16:46:38.373Z,
+      originalMaxAge: 86400000,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax'
+    }
+  },
+  cookies: undefined
+}
+Authentication failed - redirecting to login
+4:46:38 PM [express] GET /api/wishlist 401 in 1ms :: {"message":"Must be logged in"}
+4:49:05 PM [express] GET /api/products 304 in 952ms :: [{"id":1,"name":"Fire-Boltt Phoenix Smart Wat…
+Auth check: {
+  isAuthenticated: false,
+  hasUser: false,
+  sessionID: 'oky6Yy8xDPTfVBdxQ4V23gHEuHfDyaXe',
+  userId: undefined,
+  session: Session {
+    cookie: {
+      path: '/',
+      _expires: 2025-05-31T16:49:23.728Z,
+      originalMaxAge: 86400000,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax'
+    }
+  },
+  cookies: undefined
+}
+Authentication failed - redirecting to login
+4:49:23 PM [express] POST /api/orders 401 in 1ms :: {"message":"Must be logged in"}

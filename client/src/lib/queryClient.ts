@@ -28,7 +28,11 @@ export async function apiRequest(
     };
   }
 
-  const response = await fetch(url, { method, ...config });
+  const response = await fetch(url, { 
+    method, 
+    credentials: "include", // Always include cookies for session
+    ...config 
+  });
   await throwIfResNotOk(response);
   return response;
 }
