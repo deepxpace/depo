@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Product } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product-card";
+import HeroCarousel from "@/components/hero-carousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -17,16 +18,8 @@ export default function HomePage() {
 
   return (
     <div className="space-y-12">
-      <section className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">Welcome to TruKart Nepal</h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Your one-stop shop for the latest electronics. From smartphones to laptops,
-          find the best tech at great prices.
-        </p>
-        <Button variant="outline" asChild>
-          <Link href="/products">Shop Now</Link>
-        </Button>
-      </section>
+      {/* Hero Carousel Banner */}
+      <HeroCarousel />
 
       <section className="space-y-6">
         <h2 className="text-3xl font-bold text-center">Featured Products</h2>

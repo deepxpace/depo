@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --primary: 0 100% 50%; /* Red #FF0000 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 100% 25%; /* Navy #000080 */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 0 100% 50%;
+    --accent-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
