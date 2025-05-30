@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/server/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/public/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "postgresql://postgres.dewmzjpvxkdbofbmrygc:Kydneq-pabsan-tibgu1@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
+  }
+}
