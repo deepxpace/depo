@@ -62,7 +62,7 @@ export default function CheckoutPage() {
         0,
       );
 
-      await apiRequest("POST", "/api/orders", {
+      const response = await apiRequest("POST", "/api/orders", {
         items: items.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
@@ -71,6 +71,8 @@ export default function CheckoutPage() {
         address: data.address,
         paymentMethod: data.paymentMethod,
       });
+
+      return response.json();
     },
     onSuccess: () => {
       clearCart();
@@ -79,6 +81,14 @@ export default function CheckoutPage() {
         description: "Thank you for your purchase!",
       });
       setLocation("/");
+    },
+    onError: (error: any) => {
+      console.error("Checkout error:", error);
+      toast({
+        title: "Order failed",
+        description: error.message || "Failed to place order. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 

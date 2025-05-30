@@ -35,6 +35,12 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    cookie: {
+      secure: false, // Set to false for development
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax'
+    },
   };
 
   app.set("trust proxy", 1);
@@ -66,7 +72,7 @@ export function setupAuth(app: Express) {
           try {
             // Check if user already exists
             let user = await storage.getUserByUsername(profile.id);
-            
+
             if (!user) {
               // Create new user with Google profile
               user = await storage.createUser({
@@ -75,7 +81,7 @@ export function setupAuth(app: Express) {
                 role: "customer",
               });
             }
-            
+
             return done(null, user);
           } catch (error) {
             return done(error, null);
@@ -88,7 +94,7 @@ export function setupAuth(app: Express) {
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
-  
+
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
