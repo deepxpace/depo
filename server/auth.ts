@@ -51,13 +51,23 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
-      const user = await storage.getUserByUsername(username);
-      if (!user || !(await comparePasswords(password, user.password))) {
-        return done(null, false);
-      } else {
+      try {
+        const user = await storage.getUserByUsername(username);
+        if (!user) {
+          return done(null, false, { message: "User not found" });
+        }
+        
+        const passwordMatch = await comparePasswords(password, user.password);
+        if (!passwordMatch) {
+          return done(null, false, { message: "Invalid password" });
+        }
+        
         return done(null, user);
+      } catch (error) {
+        console.error("Login error:", error);
+        return done(error);
       }
-    }),
+    })
   );
 
   // Google OAuth Strategy - only register if environment variables exist
@@ -125,8 +135,27 @@ export function setupAuth(app: Express) {
     });
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("Authentication error:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      
+      if (!user) {
+        console.log("Login failed:", info?.message || "Invalid credentials");
+        return res.status(400).json({ error: info?.message || "Invalid credentials" });
+      }
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Login error:", loginErr);
+          return res.status(500).json({ error: "Login failed" });
+        }
+        
+        res.status(200).json(user);
+      });
+    })(req, res, next);
   });
 
   app.post("/api/logout", (req, res, next) => {
