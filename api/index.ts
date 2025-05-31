@@ -87,7 +87,7 @@ export default async (req: Request, res: Response) => {
     console.error('❌ Request handling error:', error);
     return res.status(500).json({ 
       error: 'Internal Server Error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+      message: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Something went wrong') : 'Something went wrong'
     });
   }
 };

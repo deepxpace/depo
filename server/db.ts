@@ -1,4 +1,5 @@
 import knex from 'knex';
+// @ts-ignore - knexfile.cjs doesn't have TypeScript definitions
 import knexConfig from '../knexfile.cjs';
 
 // Get the current environment
@@ -23,7 +24,7 @@ export async function testConnection() {
     }
     return true;
   } catch (error) {
-    console.error("❌ Database connection test failed:", error.message);
+    console.error("❌ Database connection test failed:", error instanceof Error ? error.message : 'Unknown error');
     throw error;
   }
 }
@@ -38,14 +39,14 @@ export async function runMigrations() {
     // Only seed in development
     if (environment === 'development') {
       const seedCount = await db('products').count('* as count').first();
-      if (seedCount.count === 0) {
+      if (seedCount && typeof seedCount.count === 'number' && seedCount.count === 0) {
         console.log("🌱 Running seeds for development...");
         await db.seed.run();
         console.log("✅ Seeds completed successfully");
       }
     }
   } catch (error) {
-    console.error("❌ Migration failed:", error.message);
+    console.error("❌ Migration failed:", error instanceof Error ? error.message : 'Unknown error');
     // Don't throw error for migrations to allow app to start
   }
 }

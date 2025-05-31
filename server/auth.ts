@@ -89,7 +89,7 @@ export function setupAuth(app: Express) {
           try {
             const email = profile.emails?.[0]?.value;
             if (!email) {
-              return done(new Error("No email found in Google profile"), null);
+              return done(new Error("No email found in Google profile"), undefined);
             }
 
             // Check if user already exists
@@ -113,7 +113,7 @@ export function setupAuth(app: Express) {
             const { password: _, ...userWithoutPassword } = user;
             return done(null, userWithoutPassword);
           } catch (error) {
-            return done(error, null);
+            return done(error, undefined);
           }
         }
       )
@@ -133,7 +133,7 @@ export function setupAuth(app: Express) {
       const { password: _, ...userWithoutPassword } = user;
       done(null, userWithoutPassword);
     } catch (error) {
-      done(error, null);
+      done(error, false);
     }
   });
 
@@ -180,7 +180,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         console.error("Authentication error:", err);
         return res.status(500).json({ error: "Internal server error" });

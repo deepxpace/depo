@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/products", requireAuth, async (req, res) => {
     try {
       // Check if user is admin
-      if (req.user.role !== 'admin') {
+      if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -118,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/products/:id", requireAuth, async (req, res) => {
     try {
       // Check if user is admin
-      if (req.user.role !== 'admin') {
+      if (!req.user || req.user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -136,6 +136,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cart routes
   app.get("/api/cart", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const cartItems = await db('cart_items')
         .select(
           'cart_items.*',
@@ -156,6 +160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cart", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const { productId, quantity } = req.body;
       
       // Check if product exists and has enough stock
@@ -205,6 +213,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/cart/:productId", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const { quantity } = req.body;
       const { productId } = req.params;
 
@@ -218,6 +230,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check stock
       const product = await db('products').where('id', productId).first();
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
       if (product.stock < quantity) {
         return res.status(400).json({ message: "Insufficient stock" });
       }
@@ -236,6 +251,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/cart/:productId", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const deleted = await db('cart_items')
         .where({ user_id: req.user.id, product_id: req.params.productId })
         .del();
@@ -253,6 +272,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Orders routes
   app.post("/api/orders", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const { items, total, address, paymentMethod } = req.body;
       
       // Validate required fields
@@ -269,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create order
         const [order] = await trx('orders')
           .insert({
-            user_id: req.user.id,
+            user_id: req.user!.id,
             total_amount: total,
             shipping_address: typeof address === 'string' ? address : JSON.stringify(address),
             payment_method: paymentMethod || 'pending'
@@ -299,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Clear user's cart
-        await trx('cart_items').where('user_id', req.user.id).del();
+        await trx('cart_items').where('user_id', req.user!.id).del();
 
         return order;
       });
@@ -313,6 +336,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/orders", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       let query = db('orders')
         .select(
           'orders.*',
@@ -352,6 +379,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Wishlist routes
   app.post("/api/wishlist", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const { productId } = req.body;
       
       if (!productId) {
@@ -383,6 +414,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/wishlist", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const wishlist = await db('wishlist_items')
         .select(
           'wishlist_items.*',
@@ -403,6 +438,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/wishlist/:productId", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const deleted = await db('wishlist_items')
         .where({ user_id: req.user.id, product_id: req.params.productId })
         .del();
@@ -419,6 +458,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/wishlist/check/:productId", requireAuth, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       const item = await db('wishlist_items')
         .where({ user_id: req.user.id, product_id: req.params.productId })
         .first();
