@@ -4,6 +4,7 @@ import { registerRoutes } from "../server/routes";
 import { setupAuth } from "../server/auth";
 import { testConnection, runMigrations } from "../server/db";
 
+// Force fresh deployment - TypeScript fixes applied
 // Create Express application
 const app = express();
 
