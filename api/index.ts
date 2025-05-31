@@ -8,9 +8,12 @@ import { testConnection, runMigrations } from "../server/db";
 // Create Express application
 const app = express();
 
-// Configure CORS
+// Configure CORS for production
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors({
-  origin: true, // Allow all origins 
+  origin: isProduction 
+    ? ['https://depo-1x8z60su3-deepxpaces-projects.vercel.app', /\.vercel\.app$/]
+    : true, // Allow all origins in development
   credentials: true, // Allow credentials (cookies)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
@@ -56,6 +59,15 @@ async function initialize() {
       
       // Register all routes
       await registerRoutes(app);
+      
+      // Add health check endpoint (before error handler)
+      app.get('/api/health', (req, res) => {
+        res.json({ 
+          status: 'ok', 
+          environment: process.env.NODE_ENV || 'development',
+          timestamp: new Date().toISOString()
+        });
+      });
       
       // Add error handler
       app.use((err: any, _req: Request, res: Response, _next: any) => {
