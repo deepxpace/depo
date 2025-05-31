@@ -1,52 +1,93 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import express from 'express';
-import cors from 'cors';
-import { registerRoutes } from '../server/routes';
-import { setupAuth } from '../server/auth';
-import { testConnection } from '../server/db';
+import express, { Request, Response } from "express";
+import cors from "cors";
+import { registerRoutes } from "../server/routes";
+import { setupAuth } from "../server/auth";
+import { testConnection, runMigrations } from "../server/db";
 
-// Create the app instance once
+// Create Express application
 const app = express();
 
+// Configure CORS
 app.use(cors({
-  origin: true,
-  credentials: true,
+  origin: true, // Allow all origins 
+  credentials: true, // Allow credentials (cookies)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
+// Configure middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Initialize the app once
-let isInitialized = false;
-let initPromise: Promise<void> | null = null;
-
-async function initializeApp() {
-  if (isInitialized) return;
-  if (initPromise) return initPromise;
+// Add logging middleware (simplified for serverless)
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
   
-  initPromise = (async () => {
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
+  });
+  
+  next();
+});
+
+// Initialize application once
+let initialized = false;
+let initializePromise: Promise<void> | null = null;
+
+async function initialize() {
+  if (initialized) return;
+  if (initializePromise) return initializePromise;
+  
+  initializePromise = (async () => {
     try {
+      console.log(`🚀 Initializing NepTechMart API for ${process.env.NODE_ENV || 'development'}...`);
+      
+      // Run database migrations
+      await runMigrations();
+      
+      // Test database connection
       await testConnection();
+      
+      // Set up authentication
       await setupAuth(app);
+      
+      // Register all routes
       await registerRoutes(app);
-      isInitialized = true;
+      
+      // Add error handler
+      app.use((err: any, _req: Request, res: Response, _next: any) => {
+        const status = err.status || err.statusCode || 500;
+        const message = err.message || "Internal Server Error";
+        console.error(`❌ Error: ${message}`);
+        res.status(status).json({ message });
+      });
+      
+      initialized = true;
+      console.log('✅ API server initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize app:', error);
+      console.error('❌ Failed to initialize API server:', error);
       throw error;
     }
   })();
   
-  return initPromise;
+  return initializePromise;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+// Handler function for Vercel
+export default async (req: Request, res: Response) => {
   try {
-    await initializeApp();
-    return app(req as any, res as any);
+    // Initialize app on first request
+    await initialize();
+    
+    // Handle the request using Express
+    return app(req, res);
   } catch (error) {
-    console.error('Handler error:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error('❌ Request handling error:', error);
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    });
   }
-}
+};

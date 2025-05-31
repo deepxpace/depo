@@ -5,28 +5,30 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { db } from "./db";
+import bcrypt from "bcrypt";
 
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    interface User {
+      id: number;
+      name: string;
+      email: string;
+      role: string;
+      phone?: string;
+      address?: string;
+    }
   }
 }
 
 const scryptAsync = promisify(scrypt);
 
 export async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+  return await bcrypt.hash(password, 10);
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  return await bcrypt.compare(supplied, stored);
 }
 
 export function setupAuth(app: Express) {
@@ -34,7 +36,6 @@ export function setupAuth(app: Express) {
     secret: process.env.SESSION_SECRET || "neptokart-nepal-secret-key-2024",
     resave: false,
     saveUninitialized: false,
-    store: storage.sessionStore,
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true, // Prevent XSS attacks
@@ -50,24 +51,29 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user) {
-          return done(null, false, { message: "User not found" });
+    new LocalStrategy(
+      { usernameField: 'email' }, // Use email instead of username
+      async (email, password, done) => {
+        try {
+          const user = await db('users').where('email', email).first();
+          if (!user) {
+            return done(null, false, { message: "User not found" });
+          }
+          
+          const passwordMatch = await comparePasswords(password, user.password);
+          if (!passwordMatch) {
+            return done(null, false, { message: "Invalid password" });
+          }
+          
+          // Remove password from user object
+          const { password: _, ...userWithoutPassword } = user;
+          return done(null, userWithoutPassword);
+        } catch (error) {
+          console.error("Login error:", error);
+          return done(error);
         }
-        
-        const passwordMatch = await comparePasswords(password, user.password);
-        if (!passwordMatch) {
-          return done(null, false, { message: "Invalid password" });
-        }
-        
-        return done(null, user);
-      } catch (error) {
-        console.error("Login error:", error);
-        return done(error);
       }
-    })
+    )
   );
 
   // Google OAuth Strategy - only register if environment variables exist
@@ -81,19 +87,31 @@ export function setupAuth(app: Express) {
         },
         async (accessToken, refreshToken, profile, done) => {
           try {
+            const email = profile.emails?.[0]?.value;
+            if (!email) {
+              return done(new Error("No email found in Google profile"), null);
+            }
+
             // Check if user already exists
-            let user = await storage.getUserByUsername(profile.id);
+            let user = await db('users').where('email', email).first();
 
             if (!user) {
               // Create new user with Google profile
-              user = await storage.createUser({
-                username: profile.id,
-                password: await hashPassword(randomBytes(32).toString("hex")), // Random password for OAuth users
-                role: "customer",
-              });
+              const [newUser] = await db('users')
+                .insert({
+                  name: profile.displayName || 'Google User',
+                  email: email,
+                  password: await hashPassword(randomBytes(32).toString("hex")), // Random password for OAuth users
+                  role: "customer",
+                })
+                .returning('*');
+
+              const { password: _, ...userWithoutPassword } = newUser;
+              return done(null, userWithoutPassword);
             }
 
-            return done(null, user);
+            const { password: _, ...userWithoutPassword } = user;
+            return done(null, userWithoutPassword);
           } catch (error) {
             return done(error, null);
           }
@@ -108,11 +126,12 @@ export function setupAuth(app: Express) {
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const user = await storage.getUser(id);
+      const user = await db('users').where('id', id).first();
       if (!user) {
         return done(null, false);
       }
-      done(null, user);
+      const { password: _, ...userWithoutPassword } = user;
+      done(null, userWithoutPassword);
     } catch (error) {
       done(error, null);
     }
@@ -121,31 +140,38 @@ export function setupAuth(app: Express) {
   app.post("/api/register", async (req, res, next) => {
     try {
       console.log("Registration request body:", req.body);
-      const { username, password, role = "customer" } = req.body;
+      const { name, email, password, phone, address, role = "customer" } = req.body;
       
       // Validate required fields
-      if (!username || !password) {
-        console.log("Missing required fields:", { username: !!username, password: !!password });
-        return res.status(400).json({ error: "Username and password are required" });
+      if (!name || !email || !password) {
+        console.log("Missing required fields:", { name: !!name, email: !!email, password: !!password });
+        return res.status(400).json({ error: "Name, email and password are required" });
       }
 
-      const existingUser = await storage.getUserByUsername(username);
+      const existingUser = await db('users').where('email', email).first();
       if (existingUser) {
-        return res.status(400).json({ error: "Username already exists" });
+        return res.status(400).json({ error: "Email already exists" });
       }
 
-      const user = await storage.createUser({
-        username,
-        password: await hashPassword(password),
-        role,
-      });
+      const [user] = await db('users')
+        .insert({
+          name,
+          email,
+          password: await hashPassword(password),
+          phone,
+          address,
+          role,
+        })
+        .returning('*');
 
-      req.login(user, (err) => {
+      const { password: _, ...userWithoutPassword } = user;
+
+      req.login(userWithoutPassword, (err) => {
         if (err) {
           console.error("Login after registration error:", err);
           return next(err);
         }
-        res.status(201).json(user);
+        res.status(201).json(userWithoutPassword);
       });
     } catch (error) {
       console.error("Registration error:", error);

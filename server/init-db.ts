@@ -1,82 +1,87 @@
-import { db, initializeDatabase as initDbConnection } from "./db";
-import { users, products } from "@shared/schema";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "../shared/schema";
+import { products, users } from "../shared/schema";
 import { hashPassword } from "./auth";
 
-async function initializeDatabase() {
+const sampleProducts = [
+  {
+    name: "iPhone 15 Pro",
+    description: "The latest iPhone with advanced features",
+    price: 119900,
+    category: "Mobile Phones",
+    imageUrl: "/products/iphone15.jpg",
+    stock: 15,
+  },
+  {
+    name: "Samsung Galaxy S23",
+    description: "Premium Android smartphone with excellent camera",
+    price: 89900,
+    category: "Mobile Phones",
+    imageUrl: "/products/galaxy-s23.jpg",
+    stock: 12,
+  },
+  {
+    name: "MacBook Air M2",
+    description: "Ultra-light laptop with powerful M2 chip",
+    price: 99900,
+    category: "Laptops",
+    imageUrl: "/products/macbook-air.jpg",
+    stock: 8,
+  },
+];
+
+const adminUser = {
+  username: "admin",
+  password: "$2b$10$s0i9TvNtjlw20VF88sQR4OrTtYnYFm.KQ6QrxqEZ8O.m3fe5WomB2", // "admin123"
+  role: "admin",
+};
+
+async function migrate() {
+  console.log("Starting database migration...");
+
+  const connectionString =
+    process.env.DATABASE_URL ||
+    "postgresql://postgres.dewmzjpvxkdbofbmrygc:Kydneq-pabsan-tibgu1@aws-0-eu-central-1.pooler.supabase.com:5432/postgres";
+
+  const client = postgres(connectionString, {
+    ssl: { rejectUnauthorized: false },
+    max: 1,
+  });
+
+  const db = drizzle(client, { schema });
+
   try {
-    // Wait for the database connection to be established
-    await initDbConnection();
+    console.log("Creating tables if they don't exist...");
 
-    console.log("Initializing database with sample data...");
-
-    // Create vendor account
-    const vendorPassword = await hashPassword("vendor123");
-    await db
-      .insert(users)
-      .values({
-        username: "vendor",
-        password: vendorPassword,
-        role: "vendor",
-      })
-      .onConflictDoNothing();
-
-    // Create sample products
-    const sampleProducts = [
-      {
-        name: "Fire-Boltt Phoenix Smart Watch",
-        description:
-          "1.3″ Bluetooth Calling Smartwatch, AI Voice Assistant, 120+ Sports Modes, SpO2, Heart Rate Monitoring",
-        price: 899900, // NPR 8,999
-        category: "Smartwatch",
-        imageUrl:
-          "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
-        stock: 25,
-      },
-      {
-        name: "Samsung Galaxy Buds Pro",
-        description:
-          "True Wireless Earbuds with Active Noise Cancellation, 360 Audio, Water Resistant",
-        price: 1499900, // NPR 14,999
-        category: "Audio",
-        imageUrl:
-          "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500",
-        stock: 15,
-      },
-      {
-        name: "iPhone 15 Pro Max",
-        description:
-          "256GB, Titanium Build, A17 Pro Chip, Advanced Camera System",
-        price: 18999900, // NPR 189,999
-        category: "Smartphone",
-        imageUrl:
-          "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500",
-        stock: 8,
-      },
-      {
-        name: "MacBook Air M3",
-        description:
-          "13-inch, M3 chip, 8GB RAM, 256GB SSD, Space Gray",
-        price: 14999900, // NPR 149,999
-        category: "Laptop",
-        imageUrl:
-          "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=500",
-        stock: 5,
-      },
-    ];
-
-    for (const product of sampleProducts) {
-      await db.insert(products).values(product).onConflictDoNothing();
+    const existingProducts = await db.select().from(products);
+    if (existingProducts.length === 0) {
+      console.log("Seeding products...");
+      await db.insert(products).values(sampleProducts);
+      console.log(`Inserted ${sampleProducts.length} products`);
     }
 
-    console.log("Database initialized successfully!");
-    console.log("Vendor account: username='vendor', password='vendor123'");
+    const existingAdmin = await db
+      .select()
+      .from(users)
+      .where(schema.eq(users.username, adminUser.username));
+    if (existingAdmin.length === 0) {
+      console.log("Creating admin user...");
+      const hashedPassword = await hashPassword("admin123");
+      await db.insert(users).values({ ...adminUser, password: hashedPassword });
+      console.log("Admin user created");
+    }
+
+    console.log("Migration completed successfully");
   } catch (error) {
-    console.error("Error initializing database:", error);
+    console.error("Migration failed:", error);
+  } finally {
+    await client.end();
   }
 }
 
 // Export for use in other files
-export { initializeDatabase };
+export { migrate };
 
-// Run initialization
-initializeDatabase().then(() => process.exit(0));
+// Run migration
+migrate();

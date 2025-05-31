@@ -1,74 +1,25 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
-import postgres from "postgres";
-import Database from "better-sqlite3";
-import * as schema from "@shared/schema";
-import fs from 'fs';
-import path from 'path';
+import knex from 'knex';
+import knexConfig from '../knexfile.cjs';
 
-// For Vercel Postgres or any PostgreSQL database
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres.dewmzjpvxkdbofbmrygc:Kydneq-pabsan-tibgu1@aws-0-eu-central-1.pooler.supabase.com:5432/postgres";
+// Get the current environment
+const environment = process.env.NODE_ENV || 'development';
 
-// Variables to track which database is being used
-let db: any;
-let pool: any;
-let isUsingPostgres = false;
-let pgClient: any = null;
-
-// Check if SQLite database exists (for local development)
-const sqliteDbPath = path.join(process.cwd(), 'neptech.db');
-const sqliteExists = fs.existsSync(sqliteDbPath);
-
-// Try to connect to PostgreSQL first, fall back to SQLite if needed
-async function initDb() {
-  try {
-    console.log("🔄 Attempting to connect to PostgreSQL database...");
-    const queryClient = postgres(connectionString, {
-      ssl: { rejectUnauthorized: false },
-      connect_timeout: 15,
-      idle_timeout: 20,
-      max_lifetime: 60 * 30,
-      max: 10,
-    });
-    
-    // Test the connection with a simple query
-    await queryClient`SELECT 1`;
-    
-    // If successful, use PostgreSQL
-    db = drizzle(queryClient, { schema });
-    isUsingPostgres = true;
-    pgClient = queryClient;
-    pool = queryClient;
-    console.log("✅ Connected to PostgreSQL database");
-    return true;
-  } catch (error) {
-    console.error("❌ PostgreSQL connection failed:", error.message);
-    console.log("🔄 Falling back to SQLite database");
-    
-    // If PostgreSQL connection fails, use SQLite
-    const sqlite = new Database(sqliteDbPath);
-    db = drizzleSqlite(sqlite, { schema });
-    isUsingPostgres = false;
-    pool = sqlite;
-    console.log("✅ Connected to SQLite database");
-    return true;
-  }
-}
+// Initialize Knex with the appropriate configuration
+const db = knex(knexConfig[environment]);
 
 // Function to test database connection
 export async function testConnection() {
-  // Initialize the database if it hasn't been initialized yet
-  if (!db) {
-    await initDb();
-  }
-  
   try {
-    console.log("🔄 Testing connection to database...");
-    if (isUsingPostgres && pgClient) {
-      const result = await pgClient`SELECT NOW() as current_time`;
-      console.log("✅ PostgreSQL connection successful:", result[0].current_time);
-    } else {
+    console.log(`🔄 Testing connection to ${environment} database...`);
+    
+    if (environment === 'development') {
+      // For SQLite, just try a simple query
+      await db.raw('SELECT 1');
       console.log("✅ SQLite connection successful");
+    } else {
+      // For PostgreSQL, get current time
+      const result = await db.raw('SELECT NOW() as current_time');
+      console.log("✅ PostgreSQL connection successful:", result.rows[0].current_time);
     }
     return true;
   } catch (error) {
@@ -77,11 +28,27 @@ export async function testConnection() {
   }
 }
 
-// Initialize database on module import, but don't use top-level await
-initDb().catch(error => {
-  console.error("Failed to initialize database:", error);
-  process.exit(1);
-});
+// Function to run migrations automatically
+export async function runMigrations() {
+  try {
+    console.log(`🔄 Running migrations for ${environment}...`);
+    await db.migrate.latest();
+    console.log("✅ Migrations completed successfully");
+    
+    // Only seed in development
+    if (environment === 'development') {
+      const seedCount = await db('products').count('* as count').first();
+      if (seedCount.count === 0) {
+        console.log("🌱 Running seeds for development...");
+        await db.seed.run();
+        console.log("✅ Seeds completed successfully");
+      }
+    }
+  } catch (error) {
+    console.error("❌ Migration failed:", error.message);
+    // Don't throw error for migrations to allow app to start
+  }
+}
 
-// Export database and related utilities
-export { db, pool, isUsingPostgres as isPostgres };
+// Export database instance
+export { db };
